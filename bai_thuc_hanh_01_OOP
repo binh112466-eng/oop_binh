@@ -1,0 +1,284 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Vehicle {
+private:
+    int ma_xe;
+    string loai_xe;
+    int gio_vao;
+    int tg_do;
+    double parkingFree;
+    bool isOccupied;
+
+public:
+    Vehicle();
+    Vehicle(int ma, string loai, int gio, int tg);
+
+    int lay_ma_xe() const;
+    string lay_loai_xe() const;
+    double tinh_phi() const;
+    void hien_thi() const;
+};
+Vehicle::Vehicle(){
+	ma_xe=0;
+	loai_xe="Car";
+	gio_vao=0;
+	tg_do=0;
+	parkingFree=0;
+	isOccupied = false;
+}
+Vehicle::Vehicle(int ma,string loai, int gio, int tg){
+	ma_xe=ma;
+	loai_xe=loai;
+	gio_vao=gio;
+	tg_do=tg;
+	parkingFree=tinh_phi();
+	isOccupied = false;
+}
+int Vehicle::lay_ma_xe() const{
+	
+}
+
+double Vehicle::tinh_phi() const{
+	double don_gia = 0;
+	double tong_tien = 0;
+	int gio_dau = 0;
+	int gio_sau = 0;
+	if (loai_xe =="Car") {don_gia = 6.0;}
+	else if (loai_xe =="Motorcycle") {don_gia = 4.0;}
+	else if (loai_xe =="Bicycle") {don_gia = 2.0;}
+	bool cao_diem = (gio_vao >= 6 && gio_vao < 10)||(gio_vao >=15 && gio_vao < 19);
+	if(tg_do>2){
+	gio_dau = 2;
+	gio_sau = tg_do-gio_dau;	}
+	else{
+		int gio_dau = tg_do;
+	};
+	if(cao_diem){
+		tong_tien = gio_dau*don_gia*1.3+gio_sau*don_gia*0.9;
+	}else{
+		tong_tien = gio_dau*don_gia*0.95+gio_sau*don_gia*0.9;
+	};
+	return tong_tien;
+}
+
+class ParkingLot {
+private:
+    int ma_bai;
+    char kich_thuoc;
+    Vehicle pt1, pt2, pt3;   
+    bool co1, co2, co3;
+
+public:
+    ParkingLot();
+    ParkingLot(int mb, char kt);
+
+    int lay_ma() const;
+    bool them(Vehicle v);
+    bool xoa(int ma_xe);
+    bool chua(int ma_xe) const;
+    void hien_thi() const;
+    bool co_loai(string loai, int& dem, double& tong) const;
+};
+ParkingLot::ParkingLot() {
+	co1=false;
+	co2=false;
+	co3=false;
+	ma_bai=0;
+	kich_thuoc='S';
+}
+
+ParkingLot::ParkingLot(int mb,char kt) {
+	co1=false;
+	co2=false;
+	co3=false;
+	ma_bai=mb;
+	kich_thuoc=kt;
+}
+bool ParkingLot::them(Vehicle v){
+	if (co1==false){
+	pt1=v;
+	co1=true;
+	return true;
+	}
+	 if (kich_thuoc=='M'||kich_thuoc=='L'&&co2==false){
+	pt2=v;
+	co2=true;
+	return true;
+	}
+	if (kich_thuoc=='L'&&co3==false){
+	pt3=v;
+	co3=true;
+	return true;
+	}
+	return false;
+}
+
+
+bool ParkingLot::xoa(int ma_xe) {
+    if (co1 && pt1.lay_ma_xe() == ma_xe) {
+        if (co2) {
+            pt1 = pt2;
+            if (co3) { pt2 = pt3; co3 = false; }
+            else co2 = false;
+        } else co1 = false;
+        return true;
+    }
+    if (co2 && pt2.lay_ma_xe() == ma_xe) {
+        if (co3) { pt2 = pt3; co3 = false; }
+        else co2 = false;
+        return true;
+    }
+    if (co3 && pt3.lay_ma_xe() == ma_xe) {
+        co3 = false;
+        return true;
+    }
+    return false;
+}
+
+bool ParkingLot::chua(int ma_xe) const {
+    if (co1 && pt1.lay_ma_xe() == ma_xe) return true;
+    if (co2 && pt2.lay_ma_xe() == ma_xe) return true;
+    if (co3 && pt3.lay_ma_xe() == ma_xe) return true;
+    return false;
+}
+
+void ParkingLot::hien_thi() const {
+    int cap = (kich_thuoc == 'S') ? 1 : (kich_thuoc == 'M') ? 2 : 3;
+    int so_xe = co1 + co2 + co3;
+    cout << "Bai " << ma_bai << " [" << kich_thuoc << "] "
+         << so_xe << "/" << cap << " xe\n";
+    if (co1) pt1.hien_thi();
+    if (co2) pt2.hien_thi();
+    if (co3) pt3.hien_thi();
+}
+
+bool ParkingLot::co_loai(string loai, int& dem, double& tong) const {
+    dem = 0; tong = 0;
+    if (co1 && pt1.lay_loai_xe() == loai) { ++dem; tong += pt1.tinh_phi(); }
+    if (co2 && pt2.lay_loai_xe() == loai) { ++dem; tong += pt2.tinh_phi(); }
+    if (co3 && pt3.lay_loai_xe() == loai) { ++dem; tong += pt3.tinh_phi(); }
+    return dem > 0;
+}
+
+class SystemInterface {
+private:
+    ParkingLot bai1, bai2, bai3;   
+    bool bx1, bx2, bx3; 
+
+public:
+    SystemInterface();
+    void runMenu();
+};
+SystemInterface::SystemInterface(){
+	bx1=false;
+	bx2=false;
+	bx3=false;
+}
+ void SystemInterface::runMenu(){
+	int Dich_vu;
+	while(true){
+		cout<<"1.Tao bai do xe moi"<<endl;
+		cout<<"2.Them xe vao bai do"<<endl;
+		cout<<"3.Xoa mot bai do xe"<<endl;
+		cout<<"4.Lay xe ra khoi bai do"<<endl;
+		cout<<"5.Hien thi danh sach tat ca cac bai do xe"<<endl;
+		cout<<"6.Hien thi danh sach xe theo bai cu the"<<endl;
+		cout<<"7.Liet ke xe theo kieu phuong tien"<<endl;
+		cout<<"8.Xem bao cao phi do xe trung binh"<<endl;
+		cout<<"9.Thoat chuong trinh"<<endl;
+		cin>>Dich_vu;
+	
+		if(Dich_vu==1){
+			int mb;
+			char kt;
+			cout<<"Nhap ID bai xe : "<<endl;
+			cin>>mb;
+			cout<<"Nhap kich thuoc bai xe : "<<endl;
+			cin>>kt;
+			if(bx1==false){
+				bai1=ParkingLot(mb,kt);
+				bx1=true;
+				cout<<"Da tao thanh cong bai xe so 1 ."<<endl;
+			}else if(bx2==false){
+				bai2=ParkingLot(mb,kt);
+				bx2=true;
+				cout<<"Da tao thanh cong bai xe so 2 ."<<endl;
+			
+			}else if(bx3==false){
+				bai3=ParkingLot(mb,kt);
+				bx3=true;
+				cout<<"Da tao thanh cong bai xe so 3 ."<<endl;
+			
+			}else{
+				cout<<"Da dat gioi han 3 bai do xe ."<<endl;
+			}
+			break;
+		}
+		if(Dich_vu==2){
+			int ma;
+			string loai;
+			int gio;
+			int tg;
+			cout<<"Nhap ma xe : "<<endl;
+			cin>>ma;
+			cout<<"Nhap loai : "<<endl;
+			cin>>loai;
+			cout<<"Nhap gio vao bai : "<<endl;
+			cin>>gio;
+			cout<<"Nhap thoi gian vao bai : "<<endl;
+			cin>>tg;
+			Vehicle xe_moi(ma, loai, gio, tg);
+			bool thanh_cong=false;
+			if(bx1==true){
+				thanh_cong = bai1.them(xe_moi);
+			}
+			if(thanh_cong==false&&bx2==true){
+				thanh_cong = bai2.them(xe_moi);
+			}
+			if(thanh_cong==false&&bx3==true){
+				thanh_cong = bai3.them(xe_moi);
+			}
+			if(thanh_cong==true){
+				cout<<"Them xe thanh cong!"<<endl;
+			}else{
+				cout<<"Them xe khong thanh cong!"<<endl;
+			}
+			break; 
+		}
+		if(Dich_vu==3){
+			int ID_xoa;
+			cout<<"Nhap vao ID bai can xoa : "<<endl;
+			cin>>ID_xoa;
+			bool da_xoa = false;
+			if(bx1==true&&bai1.lay_ma()==ID_xoa){
+				bx1=false;
+				da_xoa=true;
+			}
+			if(bx2==true&&bai2.lay_ma()==ID_xoa){
+				bx2=false;
+				da_xoa=true;
+			}
+			if(bx3==true&&bai3.lay_ma()==ID_xoa){
+				bx3=false;
+				da_xoa=true;
+			}
+			if(da_xoa==true){
+				cout<<"Da xoa thanh cong !"<<endl;
+			}else{
+				cout<<"Khong xoa thanh cong !"<<endl;
+			}
+			break;
+		}
+		if(Dich_vu==4){
+			
+		}
+	}
+}
+
+int main(int argc, char** argv) {
+	SystemInterface heThong;
+	heThong.runMenu();
+	return 0;
+}
